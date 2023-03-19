@@ -1,3 +1,4 @@
+import { UserAlreadyExistsError } from "./../../use-cases/errors/user-already-exists-error";
 import { FastifyRequest, FastifyReply } from "fastify";
 import { z } from "zod";
 import { RegisterUseCase } from "@/use-cases/register";
@@ -21,7 +22,11 @@ export async function register(
 
     await registerUseCase.execute({ name, email, password });
   } catch (error) {
-    return response.status(409).send();
+    if (error instanceof UserAlreadyExistsError) {
+      return response.status(409).send({ message: error.message });
+    }
+
+    throw error;
   }
 
   return response.status(201).send();
